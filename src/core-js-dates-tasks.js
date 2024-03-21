@@ -164,13 +164,16 @@ function formatDate(date) {
  * 1, 2024 => 8
  */
 function getCountWeekendsInMonth(month, year) {
-  const date = new Date();
-  const day = date.getDay();
-  date.setMonth(month, 0);
-  date.setFullYear(year);
-  return day === 6 || day === 0
-    ? Math.round((date.getDate() / 7) * 2)
-    : Math.round((date.getDate() / 7) * 2) + 1;
+  const first = new Date(year, month - 1, 1);
+  const last = new Date(year, month, 0);
+  let weekendDays = 0;
+
+  for (let d = first; d <= last; d.setDate(d.getDate() + 1)) {
+    if (d.getDay() === 0 || d.getDay() === 6) {
+      weekendDays += 1;
+    }
+  }
+  return weekendDays;
 }
 
 /**
@@ -186,9 +189,13 @@ function getCountWeekendsInMonth(month, year) {
  * Date(2024, 0, 31) => 5
  * Date(2024, 1, 23) => 8
  */
-function getWeekNumberByDate(/* date */) {
-  throw new Error('Not implemented');
+
+function getWeekNumberByDate(date) {
+  return Math.ceil(
+    (date - new Date(date.getFullYear(), 0, 1) - 1) / (24 * 60 * 60 * 1000) / 7
+  );
 }
+// wrong tests??
 
 /**
  * Returns the date of the next Friday the 13th from a given date.
@@ -201,8 +208,17 @@ function getWeekNumberByDate(/* date */) {
  * Date(2024, 0, 13) => Date(2024, 8, 13)
  * Date(2023, 1, 1) => Date(2023, 9, 13)
  */
-function getNextFridayThe13th(/* date */) {
-  throw new Error('Not implemented');
+function getNextFridayThe13th(date) {
+  const year = date.getFullYear();
+  let nextFriday;
+
+  for (let monthIndex = 0; monthIndex < 12; monthIndex += 1) {
+    const day = new Date(year, monthIndex, 13);
+    nextFriday = day.getDay() === 5 ? day : nextFriday;
+    if (nextFriday) break;
+  }
+
+  return nextFriday;
 }
 
 /**
@@ -216,8 +232,9 @@ function getNextFridayThe13th(/* date */) {
  * Date(2024, 5, 1) => 2
  * Date(2024, 10, 10) => 4
  */
-function getQuarter(/* date */) {
-  throw new Error('Not implemented');
+function getQuarter(date) {
+  const month = date.getMonth() + 1;
+  return Math.ceil(month / 3);
 }
 
 /**
