@@ -191,11 +191,12 @@ function getCountWeekendsInMonth(month, year) {
  */
 
 function getWeekNumberByDate(date) {
-  return Math.ceil(
-    (date - new Date(date.getFullYear(), 0, 1) - 1) / (24 * 60 * 60 * 1000) / 7
-  );
+  const start = new Date(date.getFullYear(), 0, 1);
+  const daysFromStart = (date - start) / 86400000;
+  const startDayWeek = start.getDay() === 0 ? 7 : start.getDay();
+
+  return Math.ceil((daysFromStart + startDayWeek) / 7);
 }
-// wrong tests??
 
 /**
  * Returns the date of the next Friday the 13th from a given date.
@@ -255,8 +256,31 @@ function getQuarter(date) {
  * { start: '01-01-2024', end: '15-01-2024' }, 1, 3 => ['01-01-2024', '05-01-2024', '09-01-2024', '13-01-2024']
  * { start: '01-01-2024', end: '10-01-2024' }, 1, 1 => ['01-01-2024', '03-01-2024', '05-01-2024', '07-01-2024', '09-01-2024']
  */
-function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
-  throw new Error('Not implemented');
+function getWorkSchedule(period, countWorkDays, countOffDays) {
+  const start = period.start.split('-').map(Number).reverse();
+  const end = period.end.split('-').map(Number).reverse();
+  const first = new Date(start[0], start[1] - 1, start[2]);
+  const last = new Date(end[0], end[1] - 1, end[2]);
+
+  let work = true;
+  const result = [];
+
+  while (first <= last) {
+    if (work) {
+      for (let i = 0; i < countWorkDays && first <= last; i += 1) {
+        const formattedDate = `${String(first.getDate()).padStart(2, '0')}-${String(first.getMonth() + 1).padStart(2, '0')}-${first.getFullYear()}`;
+        result.push(formattedDate);
+        first.setDate(first.getDate() + 1);
+      }
+      work = false;
+    }
+    if (!work) {
+      first.setDate(first.getDate() + (work ? countWorkDays : countOffDays));
+      work = !work;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -271,8 +295,9 @@ function getWorkSchedule(/* period, countWorkDays, countOffDays */) {
  * Date(2022, 2, 1) => false
  * Date(2020, 2, 1) => true
  */
-function isLeapYear(/* date */) {
-  throw new Error('Not implemented');
+function isLeapYear(date) {
+  const full = date.getFullYear();
+  return (full % 4 === 0 && full % 100 !== 0) || full % 400 === 0;
 }
 
 module.exports = {
